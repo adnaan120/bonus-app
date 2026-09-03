@@ -206,7 +206,7 @@
       <div class="verified-title">Verified!</div>
       <div class="amount-text">+0.003 USDT</div>
       <div class="sub-text">Tap OK to collect and close.</div>
-      <button class="ok-btn" onclick="handleClaim()">OK</button>
+      <button class="ok-btn" id="claimBtn" onclick="handleClaim()">OK</button>
     </div>
   </div>
 
@@ -215,6 +215,16 @@
     if (tg) {
       tg.ready();
       tg.expand();
+    }
+
+    // Adsgram Controller (Block ID: 45902)
+    let AdController = null;
+    try {
+      if (window.Adsgram) {
+        AdController = window.Adsgram.init({ blockId: "45902" });
+      }
+    } catch (err) {
+      console.log("Adsgram init error:", err);
     }
 
     let currentStep = 1;
@@ -278,13 +288,11 @@
             document.getElementById('qCount').innerText = 'QUESTION 2 OF 2';
             generateQuestion();
           } else {
-            // Labadii su'aaloodba way dhamaadeen
             document.getElementById('quizScreen').style.display = 'none';
             document.getElementById('verifiedScreen').style.display = 'flex';
           }
         }, 500);
       } else {
-        // Jawaab Khaldan
         isProcessing = true;
         btn.classList.add('wrong');
         const errorMsg = document.getElementById('errorMsg');
@@ -297,15 +305,30 @@
     }
 
     // Marka OK la taabto
-    function handleClaim() {
-      // 1. U dir xogta Bot-ka isla markiiba
+    async function handleClaim() {
+      const claimBtn = document.getElementById('claimBtn');
+      if (claimBtn) {
+        claimBtn.innerText = "Processing...";
+        claimBtn.disabled = true;
+      }
+
+      // 1. Isku day in aad xayeysiiska furto haddii uu diyaar yahay
+      if (AdController) {
+        try {
+          await AdController.show();
+        } catch (e) {
+          // Haddii uu xayeysiisku baaris ku jiro ama cillad jirto, halkan wuu ka gudbayaa
+          console.log("Ad skipped/unavailable:", e);
+        }
+      }
+
+      // 2. U dir xogta bot-ka si lacagta loogu shubo jeebkiisa
       if (tg) {
         tg.sendData(JSON.stringify({ action: "claim_bonus", amount: 0.003 }));
         tg.close();
       }
     }
 
-    // Bilow su'aalaha
     generateQuestion();
   </script>
 </body>
